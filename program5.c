@@ -13,8 +13,13 @@
 // #include "program4.h"
 // #include "synchro.h"
 
+volatile int isr1;
+volatile int isr2;
+
 int main(void) {
    int test = 0;
+   isr1 = 0;
+   isr2 = 0;
    serial_init();
    // clear_screen();
 
@@ -32,7 +37,14 @@ int main(void) {
 
    // print_int((uint16_t)sd_card_status);
    // print_string("hello");
+   start_system_timer();
    start_audio_pwm();
+   while(1){
+      print_string("isr1 = ");
+      print_int(isr1);
+      print_string("isr2 = ");
+      print_int(isr2);
+   }
 
    // os_init();
 
