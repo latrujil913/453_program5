@@ -8,7 +8,7 @@ void start_system_timer() {
    TIMSK0 |= _BV(OCIE0A);  /* IRQ on compare.  */
    TCCR0A |= _BV(WGM01); //clear timer on compare match
 
-   //22KHz settings
+   // 22KHz settings
    TCCR0B |= _BV(CS01); //prescalar /8
    OCR0A = 90; //generate interrupt every 45 microseconds
 
