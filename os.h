@@ -10,7 +10,7 @@
 #include <stdint.h>
 #include "synchro.h"
 void create_thread(char* name, uint16_t address, void* args, uint16_t stack_size);
-void start_system_timer();
+//void start_system_timer();
 void os_init();
 void os_start();
 void yield(void);
