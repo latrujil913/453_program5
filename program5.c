@@ -9,7 +9,7 @@
 // #include "os.h"
 // #include "ext2.h"
 #include "SdReader.h"
-// #include "program5.h"
+#include "program5.h"
 // #include "program4.h"
 // #include "synchro.h"
 
@@ -32,7 +32,8 @@ int main(void) {
 
    // print_int((uint16_t)sd_card_status);
    // print_string("hello");
-   // start_audio_pwm();
+   start_audio_pwm();
+
    // os_init();
 
    return 0;
