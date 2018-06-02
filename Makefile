@@ -9,8 +9,8 @@
 DEVICE = COM7
 
 #default target to compile the code
-program_5: program5.c SdReader.c os_util.c serial.c os.c #synchro.c serial.c ext2.c
-	avr-gcc -std=gnu99 -mmcu=atmega2560 -DF_CPU=16000000 -O2 -o program5.elf program5.c SdReader.c os_util.c serial.c os.c #synchro.c ext2.c
+program_5: program5.c SdReader.c os_util.c serial.c os.c synchro.c #serial.c ext2.c
+	avr-gcc -std=gnu99 -mmcu=atmega2560 -DF_CPU=16000000 -O2 -o program5.elf program5.c SdReader.c os_util.c serial.c os.c synchro.c #ext2.c
 	avr-objcopy -O ihex program5.elf program5.hex
 	avr-size program5.elf
 
