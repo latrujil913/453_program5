@@ -4,7 +4,6 @@
 #include "os.h"
 #include "synchro.h"
 #include <stdint.h>
-#include "program5.h"
  volatile int global;
 //memBegin holds the address of system_t
 system_t *memBegin;
@@ -126,8 +125,6 @@ void os_init() {
 
    return;
 }
-
-
 void os_start(void){
    char temp[5] = "main";
    global = 0;
@@ -272,23 +269,19 @@ ISR(TIMER0_COMPA_vect) {
 //    TCCR0B |= _BV(CS02) | _BV(CS00) | _BV(CS02);    //prescalar /1024
 //    OCR0A = 156;             //generate interrupt every 9.98 milliseconds
 // }
+void start_system_timer() {
+                   //start timer 0 for OS system interrupt
+                   TIMSK0 |= _BV(OCIE0A);  //interrupt on compare match
+                   TCCR0A |= _BV(WGM01);   //clear timer on compare match
+                   //Generate timer interrupt every ~10 milliseconds
+                   TCCR0B |= _BV(CS02) | _BV(CS00);    //prescalar /1024
+           OCR0A = 156;             //generate interrupt every 9.98 milliseconds
 
-
-//NO LONGER NEEDED, USING VERSION INSIDE os_util.c
-
-// void start_system_timer() {
-//                    //start timer 0 for OS system interrupt
-//                    TIMSK0 |= _BV(OCIE0A);  //interrupt on compare match
-//                    TCCR0A |= _BV(WGM01);   //clear timer on compare match
-//                    //Generate timer interrupt every ~10 milliseconds
-//                    TCCR0B |= _BV(CS02) | _BV(CS00);    //prescalar /1024
-//            OCR0A = 156;             //generate interrupt every 9.98 milliseconds
-//
-//                    //start timer 1 to generate interrupt every 1 second
-//                    OCR1A = 15625;
-//                    TIMSK1 |= _BV(OCIE1A);  //interrupt on compare
-//                    TCCR1B |= _BV(WGM12) | _BV(CS12) | _BV(CS10); //slowest prescalar /1024
-// }
+                   //start timer 1 to generate interrupt every 1 second
+                   OCR1A = 15625;
+                   TIMSK1 |= _BV(OCIE1A);  //interrupt on compare
+                   TCCR1B |= _BV(WGM12) | _BV(CS12) | _BV(CS10); //slowest prescalar /1024
+}
 
 //new_sp = arg1 = r25(high) r24(low)
    //this is an address, move to Z
