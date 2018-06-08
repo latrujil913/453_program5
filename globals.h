@@ -40,5 +40,7 @@ void set_cursor(uint8_t row, uint8_t col);
 void set_color(uint8_t color);
 void clear_screen(void);
 void work(void);
+void yieldGiven(void);
+
 
 #endif

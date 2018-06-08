@@ -13,8 +13,6 @@ void create_thread(char* name, uint16_t address, void* args, uint16_t stack_size
 //void start_system_timer();
 void os_init();
 void os_start();
-void yield(void);
-
 //16 bytes
 typedef struct thread_t {
    uint8_t id;

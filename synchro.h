@@ -9,10 +9,9 @@ typedef struct semaphore_t{
 }semaphore_t;
 
 typedef struct mutex_t{
-   int volatile lock;
-   //int* waitList;
-   int volatile waitList[8];
-   int volatile waiting;
+   uint8_t lock;
+   uint8_t waiting;
+   uint8_t owner;
 }mutex_t;
 
 //just do nothing functions...
@@ -28,9 +27,9 @@ void nothing(void);
 void just_animations(void);
 
 
-void mutex_init(struct mutex_t** m);
-void mutex_lock(struct mutex_t** m);
-void mutex_unlock(struct mutex_t** m);
+void mutex_init(struct mutex_t* m);
+void mutex_lock(struct mutex_t* m);
+void mutex_unlock(struct mutex_t* m);
 void display_stats(void);
 void blink_V2(void);
 void consumer(void);

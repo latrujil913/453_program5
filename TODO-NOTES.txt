@@ -1,0 +1,7 @@
+NOTES:
+- isr1 = 1 sec Timer
+- isr2 = 22 millisecond timer
+
+TODO:
+- replace read_data with
+- find a music file

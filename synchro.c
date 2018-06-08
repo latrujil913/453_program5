@@ -4,7 +4,7 @@
 #include <avr/interrupt.h>
 
 extern system_t *memBegin;
-extern mutex_t *printLock;
+extern mutex_t printLock;
 extern volatile int global;
 extern int numThreads;
 volatile int buffer[10];
@@ -31,52 +31,7 @@ void consumer1(void){
    }
 }
 
-void printtt(void){
-   int col = 0, row = 2;
-   while(1){
-      mutex_lock(&printLock);
-      col = 0;
-      row = 2;
-       if(global < 10)
-          clear_screen();
-      set_cursor(row++, col);
-      print_string("thread name: ");
-      print_string(memBegin -> threads[1].tName);
-      set_cursor(row++, col);
-      print_string("thread state: ");
-      printState(memBegin -> threads[1].curState);
-      row++;
-      set_cursor(row++, col);
-      print_string("thread name: ");
-      print_string(memBegin -> threads[2].tName);
-      set_cursor(row++, col);
-      print_string("thread state: ");
-      printState(memBegin -> threads[2].curState);
 
-      row = 2;
-      col = 35;
-      set_cursor(row++, col);
-      print_string("waiting = ");
-      print_int(printLock -> waiting);
-      set_cursor(row++, col);
-      print_int(printLock -> waitList[0]);
-      set_cursor(row++, col);
-      print_int(printLock -> waitList[1]);
-      set_cursor(row++, col);
-      print_int(printLock -> waitList[2]);
-      set_cursor(row++, col);
-      print_int(printLock -> waitList[3]);
-      set_cursor(row++, col);
-      print_int(printLock -> waitList[4]);
-      set_cursor(row++, col);
-      print_int(printLock -> waitList[5]);
-      set_cursor(row++, col);
-      print_int(printLock -> waitList[6]);
-      set_cursor(row++, col);
-      print_int(printLock -> waitList[7]);
-      mutex_unlock(&printLock);
-   }
-}
 void nothing(void){
    while(1){
    mutex_lock(&printLock);
@@ -101,63 +56,48 @@ void printState(enum state curState){
    }
 }
 
-void mutex_init(struct mutex_t** m)
+void mutex_init(struct mutex_t* m)
 {
-   //m = (mutex_t*)malloc(sizeof(mutex_t));
-   (*m) -> lock = 1;
-   (*m) -> waiting = 0;
-   //m -> waitList = malloc(sizeof(int) * 8);
-   (*m) -> waitList[0] = 0;
-   (*m) -> waitList[1] = 0;
-   (*m) -> waitList[2] = 0;
-   (*m) -> waitList[3] = 0;
-   (*m) -> waitList[4] = 0;
-   (*m) -> waitList[5] = 0;
-   (*m) -> waitList[6] = 0;
-   (*m) -> waitList[7] = 0;
-   //print_string("   here");
-   //print_int(m -> lock);
-   //print_string("here   ");
+   m -> lock = 1; //1 = unlocked, 0 = locked
+   m -> waiting = 0;
+   m -> owner = 0;
 }
-void mutex_lock(struct mutex_t** m){
+
+
+void mutex_lock(struct mutex_t* m){
    cli();
-   if((*m) -> lock < 1){ //lock unavailable
-      //memBegin -> threads[memBegin -> runningThread].curState = THREAD_WAITING;
-      (*m) -> waitList[(*m) -> waiting] = memBegin -> runningThread; //add to waitlist
-      (*m) -> waiting++;
-         //with this implementation, we need to reorder the array in mutex_unlock
+   //print_string("  \"mutex-lock - CLI\"  ");
+   if(!m -> lock){ //lock unavailable
+      m -> waiting = memBegin -> runningThread;
       memBegin -> threads[memBegin -> runningThread].curState = THREAD_WAITING;
-      yield();
+      yieldGiven();
+      //after we return, WE own the lock
+      m -> lock = 0;
+      m -> owner = memBegin -> runningThread;
+      m -> waiting = 0;
    }
    else{
-      (*m) -> lock = 0;
+      m -> lock = 0;
+      m -> owner = memBegin -> runningThread;
+      memBegin -> threads[m -> waiting].curState = THREAD_READY;
    }
    sei();
+   //print_string("  \"mutex-lock - SEI\"  ");
 }
-/*
-   Simple function to resort the array after taking
-      the first member of the waitlist
-*/
-void siftArray(struct mutex_t** p, int count){
-   int i;
-   for(i = 0; i < count - 1; i++){
-      (*p) -> waitList[i] = (*p) -> waitList[i + 1];
-   }
-}
-void mutex_unlock(struct mutex_t** m){
+
+
+void mutex_unlock(struct mutex_t* m){
    cli();
-   (*m) -> lock = 1;
-   //change the state of the first thread on waitlist
-   //so that get_next_thread will actually call it
-   if((*m) -> waiting > 0){
-      memBegin -> threads[(*m) -> waitList[0]].curState = THREAD_READY;
-      siftArray(m, 8);
-      (*m) -> waiting--;
-
+   //print_string("  \"mutex-unlock - CLI\"  ");
+   if(m -> owner == memBegin -> runningThread){
+      m -> lock = 1;
+      memBegin -> threads[m -> waiting].curState = THREAD_READY;
+      yieldGiven();
+      m -> waiting = 0;
    }
    sei();
+   //print_string("  \"mutex-unlock - SEI\"  ");
 }
-
 
 void thread_sleep(uint16_t ticks){
 

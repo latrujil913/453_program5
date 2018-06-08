@@ -5,11 +5,11 @@
 #include "synchro.h"
 #include <stdint.h>
 #include "program5.h"
-
+ volatile int global;
+//memBegin holds the address of system_t
 extern volatile int isr1;
 extern volatile int isr2;
-volatile int global;
-//memBegin holds the address of system_t
+
 system_t *memBegin;
 thread_t *dummyThread;
 mutex_t *printLock;
@@ -92,20 +92,30 @@ void create_thread(char* name, uint16_t address, void* args, uint16_t stack_size
  * Parameter:
  *    N/A
  *****************************************************************************/
-void yield(void){
-   uint8_t curThread, next;
-   curThread = memBegin -> runningThread;
+ void yieldGiven(void){
 
-   memBegin -> threads[curThread].curState = THREAD_WAITING;
-   next = get_next_thread();
-   memBegin -> threads[next].curState = THREAD_RUNNING;
+    if(memBegin -> runningThread == 1){
 
+       memBegin -> threads[2].curState = THREAD_RUNNING;
 
-   context_switch((uint16_t*)&memBegin -> threads[next].stackPointer,
-    (uint16_t*)&memBegin -> threads[curThread].stackPointer);
-    //sei(); //must commence interrupts since we stopped them
-}
-/******************************************************************************
+       context_switch((uint16_t*)&memBegin -> threads[2].stackPointer,
+
+        (uint16_t*)&memBegin -> threads[1].stackPointer);
+
+    }
+
+    else{
+
+       memBegin -> threads[1].curState = THREAD_RUNNING;
+
+       context_switch((uint16_t*)&memBegin -> threads[1].stackPointer,
+
+        (uint16_t*)&memBegin -> threads[2].stackPointer);
+
+    }
+
+ }
+ /******************************************************************************
  * Function:  os_init
  * ------------------
  * Desc: Initializes the multithreading program by calling functions that
@@ -123,8 +133,8 @@ void os_init() {
    memBegin -> runningThread = 1;
    memBegin -> numThreads = 1;
    memBegin -> systemTime = 0;
-   printLock = (mutex_t*)malloc(sizeof(mutex_t));
-   mutex_init(&printLock);
+
+
    //print_int(printLock -> lock);
 
    return;
@@ -206,15 +216,14 @@ uint8_t get_next_thread2(void) {
 
 
 ISR(TIMER1_COMPA_vect) {
-//This interrupt routine is run once a second
-//The 2 interrupt routines will not interrupt each other
-//^comment from Prog3
-
+   isr1++;
    // uint8_t i;
    // for(i = 0; i < memBegin -> numThreads; i++)
    //    memBegin -> threads[i].sched_count = 0;
-   isr1++;
-
+   //                 //This interrupt routine is run once a second
+   //
+   //                 //The 2 interrupt routines will not interrupt each other
+   //
 }
 
 /******************************************************************************
@@ -230,32 +239,32 @@ ISR(TIMER1_COMPA_vect) {
 //This interrupt routine is automatically run every 10 milliseconds
 ISR(TIMER0_COMPA_vect) {
    isr2++;
-   // void *new_sp, *old_sp;
-   // uint8_t curNode = memBegin -> runningThread;
-   // if(memBegin -> threads[curNode].curState != THREAD_WAITING)
-   //    memBegin -> threads[curNode].curState = THREAD_READY;
-   // uint8_t nextThread = get_next_thread();
-   // memBegin -> threads[nextThread].curState = THREAD_RUNNING;
-   // global++;
-   // memBegin -> runningThread = nextThread;
-         //At the beginning of this ISR, the registers r0, r1, and r18-31 have
-         //already been pushed to the stack
-
-         //The following statement tells GCC that it can use registers r18-r31
-         //for this interrupt routine.  These registers (along with r0 and r1)
-         //will automatically be pushed and popped by this interrupt routine.
-   // asm volatile ("" : : : "r18", "r19", "r20", "r21", "r22", "r23", "r24", \
-   //               "r25", "r26", "r27", "r30", "r31");
-
-         //Insert your code here
-         //Call get_next_thread to get the thread id of the next thread to run
-         //Call context switch here to switch to that next thread
-
-   // context_switch((uint16_t*)&memBegin -> threads[nextThread].stackPointer,
-   //  (uint16_t*)&memBegin -> threads[curNode].stackPointer);
-
-         //At the end of this ISR, GCC generated code will pop r18-r31, r1,
-         //and r0 before exiting the ISR
+//    void *new_sp, *old_sp;
+//    uint8_t curNode = memBegin -> runningThread;
+//    if(memBegin -> threads[curNode].curState != THREAD_WAITING)
+//       memBegin -> threads[curNode].curState = THREAD_READY;
+//    uint8_t nextThread = get_next_thread();
+//    memBegin -> threads[nextThread].curState = THREAD_RUNNING;
+//    global++;
+//    memBegin -> runningThread = nextThread;
+//    //At the beginning of this ISR, the registers r0, r1, and r18-31 have
+//    //already been pushed to the stack
+//
+//    //The following statement tells GCC that it can use registers r18-r31
+//    //for this interrupt routine.  These registers (along with r0 and r1)
+//    //will automatically be pushed and popped by this interrupt routine.
+//    asm volatile ("" : : : "r18", "r19", "r20", "r21", "r22", "r23", "r24", \
+//                  "r25", "r26", "r27", "r30", "r31");
+//
+//    //Insert your code here
+//    //Call get_next_thread to get the thread id of the next thread to run
+//    //Call context switch here to switch to that next thread
+//
+//    context_switch((uint16_t*)&memBegin -> threads[nextThread].stackPointer,
+//     (uint16_t*)&memBegin -> threads[curNode].stackPointer);
+//
+//    //At the end of this ISR, GCC generated code will pop r18-r31, r1,
+//    //and r0 before exiting the ISR
 }
 
 /******************************************************************************
@@ -276,9 +285,6 @@ ISR(TIMER0_COMPA_vect) {
 //    TCCR0B |= _BV(CS02) | _BV(CS00) | _BV(CS02);    //prescalar /1024
 //    OCR0A = 156;             //generate interrupt every 9.98 milliseconds
 // }
-
-
-//OLDDDDD NO LONGER USED, REFER TO os_util.c FOR NEW FUNCTION
 // void start_system_timer() {
 //                    //start timer 0 for OS system interrupt
 //                    TIMSK0 |= _BV(OCIE0A);  //interrupt on compare match
