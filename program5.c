@@ -15,17 +15,19 @@
 volatile int isr1;
 volatile int isr2;
 
+extern uint8_t errorCode_;
+
+
 FILE *fp;
 uint8_t audio, request = 0;
 struct ext2_inode inode;
 struct ext2_super_block sb;
 uint8_t ramBufferPlayBack[256];
 uint8_t ramBufferRead[256];
+uint32_t sd_size = 10;
 static struct mutex_t printLock;
 
-
 int main(void) {
-   uint8_t first = 200, second = 100;
    isr1 = 0;
    isr2 = 0;
    uint32_t blkAmount;
@@ -46,20 +48,28 @@ int main(void) {
    get_super_block(&sb);
    get_inode_p5(2);
    sd_card_reader();
+   print_super_block();
+   blank_audio();
+
 
    while(1){
-      // sd_card_reader();
-      // audio_playback();
-      // if (isr2 % 2 == 0){
-      //    OCR2B =  first;
-      // }
-      // else {
-      //    OCR2B = second;
-      // }
+      sd_card_reader();
+      audio_playback();
       // CMDS for keys
    }
    // os_init();
    return 0;
+}
+
+void blank_audio(){
+   uint8_t first = 200, second = 100;
+
+   if (isr2 % 2 == 0){
+      OCR2B =  first;
+   }
+   else {
+      OCR2B = second;
+   }
 }
 
 void sd_card_reader(void){ // producer
@@ -109,7 +119,7 @@ void get_inode_p5(int inodeRequest) {
 
 void get_super_block(struct ext2_super_block *sb) {
    sdReadData(2 * 1, 0, (uint8_t *) sb,
-         sizeof(struct ext2_super_block));
+         512);
 
    return;
 }
@@ -118,4 +128,40 @@ void idle(void){
    while(1){
 
    }
+}
+
+void print_super_block() {
+   uint8_t row = 5, col = 0;
+
+
+   set_cursor(row++ , col);
+   print_int(errorCode_);
+	print_string("sdCardSize: ");
+   print_int32(sdCardSize());
+
+   set_cursor(row++ , col);
+	print_string("Blocks count: ");
+   print_int32(sb.s_blocks_count);
+
+
+   print_int32(sdCardSize());
+   set_cursor(row++ , col);
+	print_string("Reserved blocks count: ");
+   print_int(sb.s_r_blocks_count);
+   set_cursor(row++ , col);
+	print_string("Free blocks count: ");
+   print_int(sb.s_free_blocks_count);
+   set_cursor(row++ , col);
+	print_string("Free inodes count: ");
+   print_int(sb.s_free_inodes_count);
+   set_cursor(row++ , col);
+	print_string("First data block: ");
+   print_int(sb.s_first_data_block);
+   set_cursor(row++ , col);
+	print_string("Blocks per group: ");
+   print_int(sb.s_blocks_per_group);
+   set_cursor(row++ , col);
+	print_string("Inodes per group: ");
+   print_int(sb.s_inodes_per_group);
+   set_cursor(row++ , col);
 }

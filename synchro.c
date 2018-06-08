@@ -85,7 +85,6 @@ void mutex_lock(struct mutex_t* m){
    //print_string("  \"mutex-lock - SEI\"  ");
 }
 
-
 void mutex_unlock(struct mutex_t* m){
    cli();
    //print_string("  \"mutex-unlock - CLI\"  ");
