@@ -21,6 +21,8 @@
 #define CYAN 0x36
 #define WHITE 0x37
 
+
+void delay_ms(int ms);
 int main(void);
 void nada(void);
 void printStats(void);

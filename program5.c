@@ -20,12 +20,17 @@ extern uint8_t errorCode_;
 
 FILE *fp;
 uint8_t audio, request = 0;
+struct ext2_dir_entry dP;
 struct ext2_inode inode;
 struct ext2_super_block sb;
 uint8_t ramBufferPlayBack[256];
 uint8_t ramBufferRead[256];
 uint32_t sd_size = 10;
 static struct mutex_t printLock;
+void print_inode();
+void print_directory();
+void getBlock(void);
+
 
 int main(void) {
    isr1 = 0;
@@ -47,18 +52,117 @@ int main(void) {
    sei();
    get_super_block(&sb);
    get_inode_p5(2);
-   sd_card_reader();
-   print_super_block();
-   blank_audio();
 
+   //sd_card_reader();
+   print_super_block();
+   //blank_audio();
+
+   delay_ms(2);
+   print_inode();
+   getBlock();
+   print_directory();
 
    while(1){
-      sd_card_reader();
-      audio_playback();
+      //sd_card_reader();
+      //blank_audio();
+      //audio_playback();
       // CMDS for keys
    }
    // os_init();
    return 0;
+}
+
+void getBlock(void){
+   sdReadData(2 * 967, 0, (uint8_t *) &dP, 512);
+}
+
+
+void print_directory(){
+   uint8_t row = 10, col = 40;
+
+   set_cursor(row++ , col);
+	print_string("inode: ");
+   print_int(dP.inode);
+
+   set_cursor(row++ , col);
+   print_string("rec_len: ");
+   print_int(dP.rec_len);
+
+   set_cursor(row++ , col);
+   print_string("name_len: ");
+   print_int(dP.name_len);
+
+   set_cursor(row++ , col);
+   print_string("name[]: ");
+   print_string(dP.name);
+}
+
+void print_inode(){
+   uint8_t row = 10, col = 0;
+   set_cursor(row++ , col);
+	print_string("i_mode: ");
+   print_int(inode.i_mode);
+   set_cursor(row++ , col);
+	print_string("i_mode masked: ");
+   print_int(inode.i_mode & 0xF000);
+
+   set_cursor(row++ , col);
+	print_string("i_uid: ");
+   print_int(inode.i_uid);
+
+   set_cursor(row++ , col);
+	print_string("i_size: ");
+   print_int(inode.i_size);
+
+   set_cursor(row++ , col);
+	print_string("i_atime: ");
+   print_int(inode.i_atime);
+
+   set_cursor(row++ , col);
+	print_string("i_ctime: ");
+   print_int(inode.i_ctime);
+
+   set_cursor(row++ , col);
+	print_string("i_mtime: ");
+   print_int(inode.i_mtime);
+
+   set_cursor(row++ , col);
+	print_string("i_dtime: ");
+   print_int(inode.i_dtime);
+
+   set_cursor(row++ , col);
+	print_string("i_gid: ");
+   print_int(inode.i_gid);
+
+   set_cursor(row++ , col);
+	print_string("i_links_count: ");
+   print_int(inode.i_links_count);
+
+   set_cursor(row++ , col);
+	print_string("i_blocks: ");
+   print_int(inode.i_blocks);
+
+   set_cursor(row++ , col);
+	print_string("i_flags: ");
+   print_int(inode.i_flags);
+
+   set_cursor(row++ , col);
+   print_string("i_block[0]: ");
+   print_int(inode.i_block[0]);
+
+   set_cursor(row++ , col);
+   print_string("i_block[1]: ");
+   print_int(inode.i_block[1]);
+
+   set_cursor(row++ , col);
+   print_string("i_block[2]: ");
+   print_int(inode.i_block[2]);
+
+   set_cursor(row++ , col);
+   print_string("i_block[3]: ");
+   print_int(inode.i_block[3]);
+
+
 }
 
 void blank_audio(){
@@ -142,8 +246,6 @@ void print_super_block() {
    set_cursor(row++ , col);
 	print_string("Blocks count: ");
    print_int32(sb.s_blocks_count);
-
-
    print_int32(sdCardSize());
    set_cursor(row++ , col);
 	print_string("Reserved blocks count: ");
