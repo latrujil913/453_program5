@@ -9,6 +9,7 @@
 //memBegin holds the address of system_t
 extern volatile int isr1;
 extern volatile int isr2;
+extern uint8_t temporaryBuffer[512];
 
 system_t *memBegin;
 thread_t *dummyThread;
@@ -239,6 +240,12 @@ ISR(TIMER1_COMPA_vect) {
 //This interrupt routine is automatically run every 10 milliseconds
 ISR(TIMER0_COMPA_vect) {
    isr2++;
+
+
+   if(isr2 < 512)
+      OCR2B = temporaryBuffer[isr2];
+
+
 //    void *new_sp, *old_sp;
 //    uint8_t curNode = memBegin -> runningThread;
 //    if(memBegin -> threads[curNode].curState != THREAD_WAITING)

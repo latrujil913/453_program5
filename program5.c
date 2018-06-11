@@ -23,13 +23,15 @@ uint8_t audio, request = 0;
 struct ext2_dir_entry dP;
 struct ext2_inode inode;
 struct ext2_super_block sb;
-uint8_t ramBufferPlayBack[256];
-uint8_t ramBufferRead[256];
+//uint8_t ramBufferPlayBack[256];
+uint8_t temporaryBuffer[512];
+//uint8_t ramBufferRead[256];
 uint32_t sd_size = 10;
 static struct mutex_t printLock;
 void print_inode();
 void print_directory();
 void getBlock(void);
+void readMus(void);
 
 
 int main(void) {
@@ -62,7 +64,8 @@ int main(void) {
    getBlock();
    print_directory();
 
-   audio_playback();
+   readMus();
+   //audio_playback();
 
    while(1){
       //sd_card_reader();
@@ -77,10 +80,35 @@ void getBlock(void){
    sdReadData(2 * 967, 0, (uint8_t *) &dP, 512);
 }
 
-void readMus(void ){
-   get_inode_p5(11);
+void readMus(void){
+   get_inode_p5(12);
+   uint32_t i = 0,xex = 0;
+   uint8_t row = 10, col = 40;
+   for(i = 0; i < 12; i++){
+      set_cursor(row++, col);
+      print_string("iblock: ");
+      print_int(inode.i_block[i]);
+   }
 
-   sdReadData(2 * inode->iblock[0], 0 , , 512);
+   set_cursor(25, 0);
+   sdReadData(2 * inode.i_block[0], 0 , (uint8_t *) &temporaryBuffer, 512);
+   // while(1){
+   print_string("alleged music data: ");
+   for(xex = 0; xex < 512; xex++){
+         print_int(temporaryBuffer[xex]);
+   }
+   // set_cursor(30, 0);
+   // sdReadData(2 * inode.i_block[0] + 1, 0, (uint8_t *) &temporaryBuffer, 512);
+   // // while(1){
+   // print_string("alleged music data: ");
+   // for(xex = 0; xex < 512; xex++){
+   //       print_int(temporaryBuffer[xex]);
+   // }
+
+
+   // }
+   //set_cursor(25, 25);
+   //print_string("LEAVING READMUS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 }
 
 void print_directory(){
@@ -92,7 +120,7 @@ void print_directory(){
    print_string(blk->name);
 
    // blk = (void *) &dP + offset;
-   for (int i = 0; i < 16; i++){
+   for (int i = 0; i < 8; i++){
    // while (blk->name) {
       blk = (void *) &dP + offset;
       // set_cursor(row++ , col);
@@ -109,23 +137,8 @@ void print_directory(){
       // print_int(blk->name_len);
       set_cursor(row++ , col);
       print_string("name-[]: ");
-      print_int(blk->inode);
+      print_string(blk->name);
    }
-
-   //buggy to read next files
-   // sdReadData(2 * 967 + 1, 0, (uint8_t *) &dP, 512);
-   // offset = 0;
-   //
-   // // blk = (void *) &dP + blk->rec_len;
-   //
-   // for (int i = 0; i < 8; i++){
-   //    blk = (void *) &dP + offset;
-   //    offset += blk->rec_len;
-   //    set_cursor(row++ , col);
-   //    print_string("name[]: ");
-   //    print_string(blk->name);
-   // }
-
 }
 
 void print_inode(){
@@ -226,7 +239,7 @@ void audio_playback(void){ // Consumer
    uint8_t row = 10, col = 40, offset = 0;
 
    while (i < 256){
-      OCR2B = ramBufferPlayBack[i++];
+      ;//OCR2B = ramBufferPlayBack[i++];
    }
    //
    // blk = (void *) &dP + offset;
