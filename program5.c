@@ -77,6 +77,12 @@ void getBlock(void){
    sdReadData(2 * 967, 0, (uint8_t *) &dP, 512);
 }
 
+void readMus(void ){
+   get_inode_p5(11);
+
+   sdReadData(2 * inode->iblock[0], 0 , , 512);
+}
+
 void print_directory(){
    struct ext2_dir_entry* blk;
    uint8_t row = 0, col = 40, offset = 0;
@@ -85,8 +91,8 @@ void print_directory(){
    print_string("name[]: ");
    print_string(blk->name);
 
-   blk = (void *) &dP + offset;
-   for (int i = 0; i < 8; i++){
+   // blk = (void *) &dP + offset;
+   for (int i = 0; i < 16; i++){
    // while (blk->name) {
       blk = (void *) &dP + offset;
       // set_cursor(row++ , col);
@@ -102,39 +108,25 @@ void print_directory(){
       // print_string("name_len: ");
       // print_int(blk->name_len);
       set_cursor(row++ , col);
-      print_string("name[]: ");
-      print_string(blk->name);
+      print_string("name-[]: ");
+      print_int(blk->inode);
    }
 
-   // buggy to read next files
+   //buggy to read next files
    // sdReadData(2 * 967 + 1, 0, (uint8_t *) &dP, 512);
-   //
    // offset = 0;
-   // set_cursor(row++ , col);
-   // print_string("name[]: ");
-   // print_string(blk->name);
+   //
+   // // blk = (void *) &dP + blk->rec_len;
    //
    // for (int i = 0; i < 8; i++){
    //    blk = (void *) &dP + offset;
-   //    // set_cursor(row++ , col);
-   //    // print_string("inode: ");
-   //    // print_int(blk->inode);
-   //
-   //    // set_cursor(row++ , col);
-   //    // print_string("rec_len: ");
    //    offset += blk->rec_len;
-   //    // print_int(blk->rec_len);
-   //
-   //    // set_cursor(row++ , col);
-   //    // print_string("name_len: ");
-   //    // print_int(blk->name_len);
    //    set_cursor(row++ , col);
    //    print_string("name[]: ");
    //    print_string(blk->name);
    // }
 
 }
-
 
 void print_inode(){
    uint8_t row = 10, col = 0;
@@ -230,9 +222,34 @@ void sd_card_reader(void){ // producer
 void audio_playback(void){ // Consumer
    // uint32_t n = sizeof(int) / sizeof(ramBufferPlayBack[0]);
    uint32_t i =0;
+   struct ext2_dir_entry* blk;
+   uint8_t row = 10, col = 40, offset = 0;
+
    while (i < 256){
       OCR2B = ramBufferPlayBack[i++];
    }
+   //
+   // blk = (void *) &dP + offset;
+   // for (int i = 0; i < 8; i++){
+   // // while (blk->name) {
+   //    blk = (void *) &dP + offset;
+   //    // set_cursor(row++ , col);
+   //    // print_string("inode: ");
+   //    // print_int(blk->inode);
+   //
+   //    // set_cursor(row++ , col);
+   //    // print_string("rec_len: ");
+   //    offset += blk->rec_len;
+   //    // print_int(blk->rec_len);
+   //
+   //    // set_cursor(row++ , col);
+   //    // print_string("name_len: ");
+   //    // print_int(blk->name_len);
+   //    set_cursor(row++ , col);
+   //    print_string("name[]: ");
+   //    print_string(blk->name);
+   // }
+
 }
 
 void get_inode_p5(int inodeRequest) {
