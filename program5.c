@@ -62,10 +62,11 @@ int main(void) {
    getBlock();
    print_directory();
 
+   audio_playback();
+
    while(1){
       //sd_card_reader();
       //blank_audio();
-      //audio_playback();
       // CMDS for keys
    }
    // os_init();
@@ -76,26 +77,64 @@ void getBlock(void){
    sdReadData(2 * 967, 0, (uint8_t *) &dP, 512);
 }
 
-
 void print_directory(){
-   uint8_t row = 10, col = 40;
-
-   set_cursor(row++ , col);
-	print_string("inode: ");
-   print_int(dP.inode);
-
-   set_cursor(row++ , col);
-   print_string("rec_len: ");
-   print_int(dP.rec_len);
-
-   set_cursor(row++ , col);
-   print_string("name_len: ");
-   print_int(dP.name_len);
+   struct ext2_dir_entry* blk;
+   uint8_t row = 0, col = 40, offset = 0;
 
    set_cursor(row++ , col);
    print_string("name[]: ");
-   print_string(dP.name);
+   print_string(blk->name);
+
+   blk = (void *) &dP + offset;
+   for (int i = 0; i < 8; i++){
+   // while (blk->name) {
+      blk = (void *) &dP + offset;
+      // set_cursor(row++ , col);
+      // print_string("inode: ");
+      // print_int(blk->inode);
+
+      // set_cursor(row++ , col);
+      // print_string("rec_len: ");
+      offset += blk->rec_len;
+      // print_int(blk->rec_len);
+
+      // set_cursor(row++ , col);
+      // print_string("name_len: ");
+      // print_int(blk->name_len);
+      set_cursor(row++ , col);
+      print_string("name[]: ");
+      print_string(blk->name);
+   }
+
+   // buggy to read next files
+   // sdReadData(2 * 967 + 1, 0, (uint8_t *) &dP, 512);
+   //
+   // offset = 0;
+   // set_cursor(row++ , col);
+   // print_string("name[]: ");
+   // print_string(blk->name);
+   //
+   // for (int i = 0; i < 8; i++){
+   //    blk = (void *) &dP + offset;
+   //    // set_cursor(row++ , col);
+   //    // print_string("inode: ");
+   //    // print_int(blk->inode);
+   //
+   //    // set_cursor(row++ , col);
+   //    // print_string("rec_len: ");
+   //    offset += blk->rec_len;
+   //    // print_int(blk->rec_len);
+   //
+   //    // set_cursor(row++ , col);
+   //    // print_string("name_len: ");
+   //    // print_int(blk->name_len);
+   //    set_cursor(row++ , col);
+   //    print_string("name[]: ");
+   //    print_string(blk->name);
+   // }
+
 }
+
 
 void print_inode(){
    uint8_t row = 10, col = 0;
